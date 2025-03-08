@@ -10,12 +10,14 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 
 const val CHANNEL_ID = "9dfb4080-2c15-4121-a78c-092608d441a0"
+private val TAG: String = WofdRae::class.java.getName();
 
 class WofdRae(context: Context, params: WorkerParameters) : Worker(context, params) {
 
     private var notificationId = 0
 
     override fun doWork(): Result {
+        Log.d(TAG, "Task executed")
         showNotification()
         return Result.success()
     }
@@ -30,6 +32,7 @@ class WofdRae(context: Context, params: WorkerParameters) : Worker(context, para
                 NotificationManager.IMPORTANCE_DEFAULT
             )
             notificationManager.createNotificationChannel(channel)
+            Log.d(TAG, "Notification channel created")
         }
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
@@ -44,7 +47,10 @@ class WofdRae(context: Context, params: WorkerParameters) : Worker(context, para
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
+        Log.d(TAG, "Notification created")
 
-        notificationManager.notify(notificationId++, notification)
+        notificationManager.notify(notificationId, notification)
+        Log.d(TAG, "Notification with id $notificationId shown")
+        notificationId++
     }
 }
