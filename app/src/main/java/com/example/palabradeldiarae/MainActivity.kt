@@ -27,14 +27,11 @@ class MainActivity: Activity() {
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 Log.d(TAG, "Notification permission not granted")
-                // TODO: Consider calling
-                // ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                // public fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>,
-                //                                        grantResults: IntArray)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-
+                ActivityCompat.requestPermissions(
+                    this@MainActivity,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    1
+                )
                 return@with
             }
         }
