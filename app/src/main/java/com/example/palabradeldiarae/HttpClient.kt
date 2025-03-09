@@ -6,7 +6,6 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.jsoup.Jsoup
 
 private val TAG: String = Notification::class.java.getName()
 
@@ -19,7 +18,7 @@ class HttpClient: OkHttpClient() {
     )
 
     var wordOfTheDayName: WordOfTheDayName = WordOfTheDayName("", "")
-    val wordOfTheDayDefinition: String = ""
+    var wordOfTheDayDefinition: String = ""
 
     fun retrieveWordOfTheDay() {
         Log.d(TAG, "Retrieving word of the day")
@@ -52,9 +51,10 @@ class HttpClient: OkHttpClient() {
     private fun parseWordOfTheDayDefinition() {
         val url = "https://dle.rae.es/data/fetch?id=${wordOfTheDayName.id}"
         val responseBodyString = getResponse(url)
+        val htmlParser = HtmlParser()
         try {
-            val wordOfTheDayDefinitionHtml = Jsoup.parse(responseBodyString)
-            // TODO: Implement Html parser
+            wordOfTheDayDefinition = htmlParser.parseMeaningsAndSynonyms(responseBodyString)
+            Log.d(TAG, "Word of the day definition: $wordOfTheDayDefinition")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing word of the day definition: ${e.message}")
@@ -70,7 +70,7 @@ class HttpClient: OkHttpClient() {
         )
         Log.d(
             TAG,
-            "Word of the day name: ${wordOfTheDayName.header}, ${wordOfTheDayName.id}"
+            "Word of the day name: ${wordOfTheDayName.header}"
         )
     }
 }
