@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Palabra del dia RAE</string>
+    <string name="http_auth">Basic cDY4MkpnaFMzOmFHZlVkQ2lFNDM0</string>
 </resources>

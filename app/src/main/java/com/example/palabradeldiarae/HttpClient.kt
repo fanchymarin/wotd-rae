@@ -1,6 +1,8 @@
 package com.example.palabradeldiarae
 
+import android.content.Context
 import android.util.Log
+import androidx.core.content.ContextCompat.getString
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -20,18 +22,18 @@ class HttpClient: OkHttpClient() {
     var wordOfTheDayName: WordOfTheDayName = WordOfTheDayName("", "")
     var wordOfTheDayDefinition: String = ""
 
-    fun retrieveWordOfTheDay() {
+    fun retrieveWordOfTheDay(context: Context) {
         Log.d(TAG, "Retrieving word of the day")
-        parseWordOfTheDayName()
-        parseWordOfTheDayDefinition()
+        parseWordOfTheDayName(context)
+        parseWordOfTheDayDefinition(context)
     }
 
-    private fun getResponse(url: String): String {
+    private fun getResponse(url: String, context: Context): String {
         var request = Request.Builder()
             .url(url)
             .addHeader("User-Agent", "Diccionario/2 CFNetwork/808.2.16 Darwin/16.3.0")
             .addHeader("Content-Type", "application/x-www-form-urlencoded")
-            .addHeader("Authorization", "Basic cDY4MkpnaFMzOmFHZlVkQ2lFNDM0")
+            .addHeader("Authorization", getString(context, R.string.http_auth))
             .build()
 
         return try {
@@ -48,22 +50,22 @@ class HttpClient: OkHttpClient() {
         } as String
     }
 
-    private fun parseWordOfTheDayDefinition() {
+    private fun parseWordOfTheDayDefinition(context: Context) {
         val url = "https://dle.rae.es/data/fetch?id=${wordOfTheDayName.id}"
-        val responseBodyString = getResponse(url)
+        val responseBodyString = getResponse(url, context)
         val htmlParser = HtmlParser()
         try {
             wordOfTheDayDefinition = htmlParser.parseMeaningsAndSynonyms(responseBodyString)
-            Log.d(TAG, "Word of the day definition: $wordOfTheDayDefinition")
+            Log.d(TAG, "Word of the day definition:\n$wordOfTheDayDefinition")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing word of the day definition: ${e.message}")
         }
     }
 
-    private fun parseWordOfTheDayName() {
+    private fun parseWordOfTheDayName(context: Context) {
         val url = "https://dle.rae.es/data/wotd?callback=json"
-        var responseBodyString = getResponse(url)
+        var responseBodyString = getResponse(url, context)
         responseBodyString = responseBodyString.substring(5, responseBodyString.length - 1)
         wordOfTheDayName = Json.decodeFromString<WordOfTheDayName>(
             responseBodyString.toString()

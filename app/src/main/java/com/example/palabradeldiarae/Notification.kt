@@ -23,7 +23,7 @@ class Notification(context: Context, params: WorkerParameters) : Worker(context,
         Log.d(TAG, "Task executed")
         val httpClient = HttpClient()
 
-        httpClient.retrieveWordOfTheDay()
+        httpClient.retrieveWordOfTheDay(applicationContext)
         createNotificationChannel()
         showNotification(httpClient)
         return Result.success()
