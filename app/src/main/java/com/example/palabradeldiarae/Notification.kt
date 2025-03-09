@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat.getString
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import kotlin.random.Random
@@ -27,7 +28,7 @@ class Notification(context: Context, params: WorkerParameters) : Worker(context,
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            R.string.app_name.toString(),
+            getString(applicationContext, R.string.app_name),
             NotificationManager.IMPORTANCE_HIGH
         )
         notificationManager.createNotificationChannel(channel)

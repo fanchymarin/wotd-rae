@@ -26,15 +26,16 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import java.text.DateFormat
 import java.util.Date
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 
 private val TAG: String = MainActivity::class.java.getName()
-private const val QUEUE_REQUEST_ID = "11bc9742-6835-440e-bdd6-552c0d2f1df4"
+private const val WORK_ID = "11bc9742-6835-440e-bdd6-552c0d2f1df4"
 
 class MainActivity : ComponentActivity() {
 
-    val activityResultLauncher =
+    private val activityResultLauncher =
         registerForActivityResult(RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
@@ -64,21 +65,44 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "PeriodicWorkRequest created")
 
         val workManager = WorkManager.getInstance(this)
-        workManager.enqueueUniquePeriodicWork(QUEUE_REQUEST_ID,
-            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+        workManager.enqueueUniquePeriodicWork(
+            WORK_ID,
+            ExistingPeriodicWorkPolicy.KEEP,
             periodicWorkRequest
         )
         Log.d(TAG, "PeriodicWorkRequest enqueued")
-        showToast("${getString(R.string.app_name)} configurado para notificar a las" +
-                "${DateFormat.getTimeInstance().format(Date())}")
+        showToast(
+            "${getString(R.string.app_name)} configurado para notificar a las " +
+                    "${DateFormat.getTimeInstance().format(Date())}"
+        )
+        showToast("Abre la aplicación de nuevo para eliminar la notificación")
         finish()
     }
 
-    fun requestPermission() {
+    private fun requestPermission() {
         Log.d(TAG, "Requesting notification permission")
         activityResultLauncher.launch(
             Manifest.permission.POST_NOTIFICATIONS
         )
+    }
+
+    private fun installOrUninstall() {
+        val workManager = WorkManager.getInstance(this)
+        val workInfoList = workManager.getWorkInfosForUniqueWork(WORK_ID).get()
+
+        Log.d(TAG, "Checking if work request exists")
+        if (workInfoList.isEmpty() || workInfoList[0].state == androidx.work.WorkInfo.State.CANCELLED)
+            enqueuePeriodicWork()
+        else {
+            workManager.cancelUniqueWork(WORK_ID)
+            Log.d(TAG,
+                "PeriodicWorkRequest cancelled"
+            )
+            showToast(
+                "${getString(R.string.app_name)} desinstalado correctamente"
+            )
+        }
+        finish()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,8 +114,9 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED -> {
                 Log.d(TAG, "Notification permission was previously granted")
-                enqueuePeriodicWork()
+                installOrUninstall()
             }
+
             ActivityCompat.shouldShowRequestPermissionRationale(this,
                 Manifest.permission.POST_NOTIFICATIONS
             ) -> {
@@ -105,16 +130,18 @@ class MainActivity : ComponentActivity() {
                             onConfirmation = {
                                 requestPermission()
                             },
-                            dialogTitle = "Permiso de notificación",
-                            dialogText = "${getString(R.string.app_name)} necesita el permiso de notificación para funcionar correctamente.",
+                            dialogTitle =
+                                "Permiso de notificación",
+                            dialogText =
+                                "${getString(R.string.app_name)} " +
+                                "necesita el permiso de notificación para funcionar correctamente.",
                             icon = Icons.Default.Info
                         )
                     }
                 }
             }
-            else -> {
-                requestPermission()
-            }
+
+            else -> requestPermission()
         }
     }
 }
