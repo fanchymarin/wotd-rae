@@ -40,7 +40,7 @@ class Notification(context: Context, params: WorkerParameters) : Worker(context,
     }
 
     private fun showNotification(httpClient: HttpClient) {
-        val wordOfTheDay = httpClient.wordOfTheDay.component1().header.replaceFirstChar{
+        val wordOfTheDay = httpClient.wordOfTheDayName.header.replaceFirstChar{
             if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setContentTitle("Palabra del día: $wordOfTheDay")

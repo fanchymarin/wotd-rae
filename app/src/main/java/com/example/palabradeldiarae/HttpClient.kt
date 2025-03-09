@@ -18,12 +18,8 @@ class HttpClient: OkHttpClient() {
         val id: String
     )
 
-    data class WordOfTheDay(
-        val name: WordOfTheDayName,
-        val definition: String
-    )
-
-    var wordOfTheDay: WordOfTheDay = WordOfTheDay(WordOfTheDayName("", ""), "")
+    var wordOfTheDayName: WordOfTheDayName = WordOfTheDayName("", "")
+    val wordOfTheDayDefinition: String = ""
 
     fun retrieveWordOfTheDay() {
         Log.d(TAG, "Retrieving word of the day")
@@ -54,11 +50,12 @@ class HttpClient: OkHttpClient() {
     }
 
     private fun parseWordOfTheDayDefinition() {
-        val url = "https://dle.rae.es/data/fetch?id=${wordOfTheDay.component1().id}"
+        val url = "https://dle.rae.es/data/fetch?id=${wordOfTheDayName.id}"
         val responseBodyString = getResponse(url)
         try {
-            val wordOfTheDayDefinition = Jsoup.parse(responseBodyString)
-            Log.d(TAG, "${wordOfTheDayDefinition.title().isEmpty()}")
+            val wordOfTheDayDefinitionHtml = Jsoup.parse(responseBodyString)
+            // TODO: Implement Html parser
+
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing word of the day definition: ${e.message}")
         }
@@ -68,13 +65,12 @@ class HttpClient: OkHttpClient() {
         val url = "https://dle.rae.es/data/wotd?callback=json"
         var responseBodyString = getResponse(url)
         responseBodyString = responseBodyString.substring(5, responseBodyString.length - 1)
-        val wordOfTheDayName = Json.decodeFromString<WordOfTheDayName>(
+        wordOfTheDayName = Json.decodeFromString<WordOfTheDayName>(
             responseBodyString.toString()
         )
         Log.d(
             TAG,
             "Word of the day name: ${wordOfTheDayName.header}, ${wordOfTheDayName.id}"
         )
-        wordOfTheDay = WordOfTheDay(wordOfTheDayName, "")
     }
 }
