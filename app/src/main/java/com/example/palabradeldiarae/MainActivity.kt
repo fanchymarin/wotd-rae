@@ -1,51 +1,83 @@
 package com.example.palabradeldiarae
 
 import android.Manifest
-import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationManagerCompat
+import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
+import java.text.DateFormat
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 private val TAG: String = MainActivity::class.java.getName();
+private const val QUEUE_REQUEST_ID = "11bc9742-6835-440e-bdd6-552c0d2f1df4"
 
-class MainActivity: Activity() {
+class MainActivity: AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private fun showToast(str: String) {
+        val toast = Toast.makeText(this,
+            str,
+            LENGTH_SHORT
+        )
+        toast.show()
+    }
 
-        Log.d(TAG, "Activity created")
-
-        with(NotificationManagerCompat.from(this)) {
-            if (ActivityCompat.checkSelfPermission(
-                    this@MainActivity,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                Log.d(TAG, "Notification permission not granted")
-                ActivityCompat.requestPermissions(
-                    this@MainActivity,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    1
-                )
-                return@with
-            }
-        }
-
+    private fun enqueuePeriodicWork() {
+        Log.d(TAG, "Enqueuing periodic work request")
         val periodicWorkRequest = PeriodicWorkRequest.Builder(
             WofdRae::class.java,
-            15, TimeUnit.MINUTES
+            24, TimeUnit.HOURS
         ).build()
         Log.d(TAG, "PeriodicWorkRequest created")
 
         val workManager = WorkManager.getInstance(this)
-        workManager.enqueue(periodicWorkRequest)
+        workManager.enqueueUniquePeriodicWork(QUEUE_REQUEST_ID,
+            androidx.work.ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+            periodicWorkRequest
+        )
         Log.d(TAG, "PeriodicWorkRequest enqueued")
+        showToast("${getString(R.string.app_name)} configurado para notificar a las" +
+                "${DateFormat.getTimeInstance().format(Date())}")
+    }
+
+    val activityResultLauncher =
+        registerForActivityResult(RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                Log.d(TAG, "Notification permission granted")
+                enqueuePeriodicWork()
+            } else {
+                Log.d(TAG, "Notification permission not granted")
+            }
+        }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, "Activity created")
+
+        Log.d(TAG, "Checking for permissions")
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                enqueuePeriodicWork()
+            }
+            else -> {
+                activityResultLauncher.launch(
+                    Manifest.permission.POST_NOTIFICATIONS
+                )
+            }
+        }
         finish()
     }
+
 }
+
 

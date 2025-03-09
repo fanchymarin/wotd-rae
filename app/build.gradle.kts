@@ -36,6 +36,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.activity)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
