@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.okhttp)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
