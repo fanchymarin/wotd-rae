@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.palabradeldiarae.ui.theme.PalabraDelDiaRAETheme
 import android.Manifest
 import android.content.pm.PackageManager
@@ -12,6 +11,7 @@ import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -42,7 +42,9 @@ class MainActivity : ComponentActivity() {
                 enqueuePeriodicWork()
             } else {
                 Log.d(TAG, "Notification permission not granted")
+                showToast("La aplicación necesita permisos para funcionar correctamente")
             }
+            finish()
         }
 
     private fun showToast(str: String) {
@@ -69,41 +71,51 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "PeriodicWorkRequest enqueued")
         showToast("${getString(R.string.app_name)} configurado para notificar a las" +
                 "${DateFormat.getTimeInstance().format(Date())}")
+        finish()
+    }
+
+    fun requestPermission() {
+        Log.d(TAG, "Requesting notification permission")
+        activityResultLauncher.launch(
+            Manifest.permission.POST_NOTIFICATIONS
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "Activity created")
 
         Log.d(TAG, "Checking for permissions")
         when {
             ContextCompat.checkSelfPermission(this,
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED -> {
+                Log.d(TAG, "Notification permission was previously granted")
                 enqueuePeriodicWork()
             }
             ActivityCompat.shouldShowRequestPermissionRationale(this,
                 Manifest.permission.POST_NOTIFICATIONS
             ) -> {
+                Log.d(TAG, "Notification permission was previously denied")
                 Log.d(TAG, "Showing permission rationale")
+                enableEdgeToEdge()
                 setContent {
-                    PermissionRationale(
-                        onDismissRequest = { finish() },
-                        onConfirmation = { },
-                        dialogTitle = "Permiso de notificación",
-                        dialogText = "${getString(R.string.app_name)} necesita el permiso de notificación para funcionar correctamente.",
-                        icon = Icons.Default.Info
-                    )
+                    PalabraDelDiaRAETheme {
+                        PermissionRationale(
+                            onDismissRequest = { finish() },
+                            onConfirmation = {
+                                requestPermission()
+                            },
+                            dialogTitle = "Permiso de notificación",
+                            dialogText = "${getString(R.string.app_name)} necesita el permiso de notificación para funcionar correctamente.",
+                            icon = Icons.Default.Info
+                        )
+                    }
                 }
             }
             else -> {
-                Log.d(TAG, "Requesting permission")
-                activityResultLauncher.launch(
-                    Manifest.permission.POST_NOTIFICATIONS
-                )
+                requestPermission()
             }
         }
-        finish()
     }
 }
 
@@ -147,18 +159,4 @@ fun PermissionRationale(
             }
         }
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PalabraDelDiaRAETheme {
-        PermissionRationale(
-            onDismissRequest = { },
-            onConfirmation = { },
-            dialogTitle = "Permiso de notificación",
-            dialogText = "Test",
-            icon = Icons.Default.Info
-        )
-    }
 }
