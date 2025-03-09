@@ -7,7 +7,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 
-private val TAG: String = Notification::class.java.getName()
+private val TAG: String = HttpClient::class.java.getName()
 
 class HttpClient: OkHttpClient() {
 

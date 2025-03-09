@@ -1,7 +1,10 @@
 package com.example.palabradeldiarae
 
+import android.util.Log
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+
+private val TAG: String = HtmlParser::class.java.getName()
 
 class HtmlParser {
     data class Meaning(
@@ -15,6 +18,8 @@ class HtmlParser {
         val meanings = mutableListOf<Meaning>()
         val meaningsHtml = doc.select("p.j")
 
+        Log.d(TAG, "Parsing definition from HTML page")
+        Log.d(TAG, "Number of meanings: ${meaningsHtml.size}")
         meaningsHtml.forEachIndexed { index, meaningElement ->
             val numberMeaning = meaningElement.select("span.n_acep").text().trim()
             val completeDefinition = meaningElement.text().replace(numberMeaning, "").trim()
