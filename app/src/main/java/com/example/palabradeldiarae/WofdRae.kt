@@ -30,7 +30,7 @@ class WofdRae(context: Context, params: WorkerParameters) : Worker(context, para
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 R.string.app_name.toString(),
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             )
             notificationManager.createNotificationChannel(channel)
             Log.d(TAG, "Notification channel created")
@@ -39,16 +39,16 @@ class WofdRae(context: Context, params: WorkerParameters) : Worker(context, para
 
     private fun showNotification() {
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setContentTitle("Sorority")
-            .setContentText("Del ingl. sorority... ")
+            .setContentTitle("Palabra del día: Sororidad")
+            .setContentText("Del ingl. sorority, este del lat. med... ")
             .setStyle(NotificationCompat.BigTextStyle()
                 .bigText("Del ingl. sorority, este del lat. mediev. sororitas, -atis 'congregación de monjas', y este der. del lat. soror, -ōris 'hermana carnal'.\n" +
                         "\n" +
-                        "    f. Amistad o afecto entre mujeres.\n" +
-                        "    f. Relación de solidaridad entre las mujeres, especialmente en la lucha por su empoderamiento.\n" +
-                        "    f. En los Estados Unidos de América, asociación estudiantil femenina que habitualmente cuenta con una residencia especial."))
+                        "1.    f. Amistad o afecto entre mujeres.\n" +
+                        "2.    f. Relación de solidaridad entre las mujeres, especialmente en la lucha por su empoderamiento.\n" +
+                        "3.    f. En los Estados Unidos de América, asociación estudiantil femenina que habitualmente cuenta con una residencia especial."))
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
         Log.d(TAG, "Notification created")
 
