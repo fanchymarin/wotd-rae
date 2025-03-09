@@ -3,7 +3,6 @@ package com.example.palabradeldiarae
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.Worker
@@ -11,9 +10,9 @@ import androidx.work.WorkerParameters
 import kotlin.random.Random
 
 const val CHANNEL_ID = "9dfb4080-2c15-4121-a78c-092608d441a0"
-private val TAG: String = WofdRae::class.java.getName()
+private val TAG: String = Notification::class.java.getName()
 
-class WofdRae(context: Context, params: WorkerParameters) : Worker(context, params) {
+class Notification(context: Context, params: WorkerParameters) : Worker(context, params) {
 
     private var notificationId = Random.nextInt()
     private val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -26,15 +25,13 @@ class WofdRae(context: Context, params: WorkerParameters) : Worker(context, para
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                R.string.app_name.toString(),
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            notificationManager.createNotificationChannel(channel)
-            Log.d(TAG, "Notification channel created")
-        }
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            R.string.app_name.toString(),
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        notificationManager.createNotificationChannel(channel)
+        Log.d(TAG, "Notification channel created")
     }
 
     private fun showNotification() {
