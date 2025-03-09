@@ -11,7 +11,7 @@ import androidx.work.WorkerParameters
 import kotlin.random.Random
 
 const val CHANNEL_ID = "9dfb4080-2c15-4121-a78c-092608d441a0"
-private val TAG: String = WofdRae::class.java.getName();
+private val TAG: String = WofdRae::class.java.getName()
 
 class WofdRae(context: Context, params: WorkerParameters) : Worker(context, params) {
 

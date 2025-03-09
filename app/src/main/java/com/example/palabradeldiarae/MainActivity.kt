@@ -8,6 +8,7 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
@@ -15,7 +16,8 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-private val TAG: String = MainActivity::class.java.getName();
+
+private val TAG: String = MainActivity::class.java.getName()
 private const val QUEUE_REQUEST_ID = "11bc9742-6835-440e-bdd6-552c0d2f1df4"
 
 class MainActivity: AppCompatActivity() {
@@ -69,6 +71,17 @@ class MainActivity: AppCompatActivity() {
             ) == PackageManager.PERMISSION_GRANTED -> {
                 enqueuePeriodicWork()
             }
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) -> {
+                permissionRationale(
+                    onDismissRequest = { finish() },
+                    onConfirmation = { },
+                    dialogTitle = "Permiso de notificación",
+                    dialogText = "Test",
+                    icon = android.R.drawable.ic_dialog_info
+                )
+            }
             else -> {
                 activityResultLauncher.launch(
                     Manifest.permission.POST_NOTIFICATIONS
@@ -80,4 +93,44 @@ class MainActivity: AppCompatActivity() {
 
 }
 
-
+@Composable
+fun permissionRationale(
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit,
+    dialogTitle: String,
+    dialogText: String,
+    icon: ImageVector,
+) {
+    AlertDialog(
+        icon = {
+            Icon(icon, contentDescription = "Example Icon")
+        },
+        title = {
+            Text(text = dialogTitle)
+        },
+        text = {
+            Text(text = dialogText)
+        },
+        onDismissRequest = {
+            onDismissRequest()
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirmation()
+                }
+            ) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onDismissRequest()
+                }
+            ) {
+                Text("Dismiss")
+            }
+        }
+    )
+}
