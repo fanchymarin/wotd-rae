@@ -50,7 +50,7 @@ class Notification(context: Context, params: WorkerParameters) : Worker(context,
                 .setContentText(wordOfTheDayDefinition)
                 .setStyle(NotificationCompat.BigTextStyle()
                     .bigText(wordOfTheDayDefinition))
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.dictionary)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .build()
             Log.d(TAG, "Notification created")
