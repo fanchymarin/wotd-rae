@@ -9,6 +9,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
+import android.widget.Toast.LENGTH_LONG
 import android.widget.Toast.LENGTH_SHORT
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -28,29 +29,15 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-
-private val TAG: String = MainActivity::class.java.getName()
-private const val WORK_ID = "11bc9742-6835-440e-bdd6-552c0d2f1df4"
+private val         TAG: String = MainActivity::class.java.getName()
+private const val   WORK_ID = "11bc9742-6835-440e-bdd6-552c0d2f1df4"
 
 class MainActivity : ComponentActivity() {
 
-    private val activityResultLauncher =
-        registerForActivityResult(RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted) {
-                Log.d(TAG, "Notification permission granted")
-                enqueuePeriodicWork()
-            } else {
-                Log.d(TAG, "Notification permission not granted")
-                showToast("La aplicación necesita permisos para funcionar correctamente")
-            }
-            finish()
-        }
-
-    private fun showToast(str: String) {
+    private fun showToast(str: String, length: Int = LENGTH_SHORT) {
         val toast = Toast.makeText(this,
             str,
-            LENGTH_SHORT
+            length
         )
         toast.show()
     }
@@ -74,20 +61,15 @@ class MainActivity : ComponentActivity() {
             "${getString(R.string.app_name)} configurado para notificar a las " +
                     "${DateFormat.getTimeInstance().format(Date())}"
         )
-        showToast("Abre la aplicación de nuevo para eliminar la notificación")
+        showToast(
+            "Abre la aplicación de nuevo para eliminar la notificación"
+        , LENGTH_LONG)
         finish()
     }
 
-    private fun requestPermission() {
-        Log.d(TAG, "Requesting notification permission")
-        activityResultLauncher.launch(
-            Manifest.permission.POST_NOTIFICATIONS
-        )
-    }
-
     private fun installOrUninstall() {
-        val workManager = WorkManager.getInstance(this)
-        val workInfoList = workManager.getWorkInfosForUniqueWork(WORK_ID).get()
+        val workManager     = WorkManager.getInstance(this)
+        val workInfoList    = workManager.getWorkInfosForUniqueWork(WORK_ID).get()
 
         Log.d(TAG, "Checking if work request exists")
         if (workInfoList.isEmpty() || workInfoList[0].state == androidx.work.WorkInfo.State.CANCELLED)
@@ -100,14 +82,36 @@ class MainActivity : ComponentActivity() {
             showToast(
                 "${getString(R.string.app_name)} desinstalado correctamente"
             )
+            finish()
         }
-        finish()
+    }
+
+    private val activityResultLauncher =
+        registerForActivityResult(RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                Log.d(TAG, "Notification permission granted")
+                enqueuePeriodicWork()
+            } else {
+                Log.d(TAG, "Notification permission not granted")
+                showToast(
+                    "La aplicación necesita permisos para funcionar correctamente"
+                )
+            }
+            finish()
+        }
+
+    private fun requestPermission() {
+        Log.d(TAG, "Requesting notification permission")
+        activityResultLauncher.launch(
+            Manifest.permission.POST_NOTIFICATIONS
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Log.d(TAG, "Checking for permissions")
+        Log.d(TAG, "Starting permission acceptance flow")
         when {
             ContextCompat.checkSelfPermission(this,
                 Manifest.permission.POST_NOTIFICATIONS
