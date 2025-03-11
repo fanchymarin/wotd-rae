@@ -3,50 +3,25 @@ package com.example.palabradeldiarae
 import android.util.Log
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.jsoup.select.Elements
 
 private val TAG: String = HtmlParser::class.java.getName()
 
 class HtmlParser {
-    data class Meaning(
-        val number: String,
-        val definition: String,
-        val synonyms: List<String>
-    )
 
-    fun parseMeaningsAndSynonyms(html: String): String {
+    fun parseDefinition(html: String): String {
         val doc: Document = Jsoup.parse(html)
-        val meanings = mutableListOf<Meaning>()
-        val meaningsHtml = doc.select("p.j")
 
         Log.d(TAG, "Parsing definition from HTML page")
-        Log.d(TAG, "Number of meanings: ${meaningsHtml.size}")
-        meaningsHtml.forEachIndexed { index, meaningElement ->
-            val numberMeaning = meaningElement.select("span.n_acep").text().trim()
-            val completeDefinition = meaningElement.text().replace(numberMeaning, "").trim()
-            
-            val divSynonyms = meaningElement.nextElementSibling()
-            val listSynonyms = mutableListOf<String>()
-
-            if (divSynonyms != null && divSynonyms.hasClass("sin-header")) {
-                val synonymElements = divSynonyms.select("mark.sin")
-                synonymElements.forEach { synonym ->
-                    listSynonyms.add(synonym.text().trim())
-                }
-            }
-
-            meanings.add(Meaning(numberMeaning, completeDefinition, listSynonyms))
+        val descriptionElement: Elements = doc.select("meta[name=description]")
+        return if (descriptionElement.isNotEmpty()) {
+            descriptionElement.attr("content")
+                .replace(Regex("Definición RAE de «.*?» según el Diccionario de la lengua española:"), "")
+                .replace(Regex("[0-9]+."), "\n$0")
+                .trim()
+        } else {
+            Log.w(TAG, "No description element found in HTML")
+            "Definición no encontrada"
         }
-
-        val result = StringBuilder()
-
-        meanings.forEach { meaning ->
-            result.append("${meaning.number} ${meaning.definition}\n")
-            if (meaning.synonyms.isNotEmpty()) {
-                result.append("Sinónimos: ${meaning.synonyms.joinToString(", ")}\n")
-            }
-            result.append("\n")
-        }
-
-        return result.toString()
     }
 }

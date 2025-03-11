@@ -19,8 +19,8 @@ class HttpClient: OkHttpClient() {
         val id: String
     )
 
-    var wordOfTheDayName: WordOfTheDayName = WordOfTheDayName("", "")
-    var wordOfTheDayDefinition: String = ""
+    lateinit var wordOfTheDayName: WordOfTheDayName
+    lateinit var wordOfTheDayDefinition: String
 
     fun retrieveWordOfTheDay(context: Context) {
         Log.d(TAG, "Retrieving word of the day")
@@ -51,11 +51,11 @@ class HttpClient: OkHttpClient() {
     }
 
     private fun parseWordOfTheDayDefinition(context: Context) {
-        val url = "https://dle.rae.es/data/fetch?id=${wordOfTheDayName.id}"
+        val url = "https://dle.rae.es/${wordOfTheDayName.header}"
         val responseBodyString = getResponse(url, context)
         val htmlParser = HtmlParser()
         try {
-            wordOfTheDayDefinition = htmlParser.parseMeaningsAndSynonyms(responseBodyString)
+            wordOfTheDayDefinition = htmlParser.parseDefinition(responseBodyString)
             Log.d(TAG, "Word of the day definition:\n$wordOfTheDayDefinition")
 
         } catch (e: Exception) {

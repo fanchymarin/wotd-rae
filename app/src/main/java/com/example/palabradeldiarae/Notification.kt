@@ -17,7 +17,8 @@ private val TAG: String = Notification::class.java.getName()
 class Notification(context: Context, params: WorkerParameters) : Worker(context, params) {
 
     private var notificationId = Random.nextInt()
-    private val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val notificationManager = applicationContext
+        .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     override fun doWork(): Result {
         Log.d(TAG, "Task executed")
