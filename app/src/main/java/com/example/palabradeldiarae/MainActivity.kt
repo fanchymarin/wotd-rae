@@ -6,6 +6,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.example.palabradeldiarae.ui.theme.PalabraDelDiaRAETheme
 import android.Manifest
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
@@ -22,63 +25,71 @@ import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequest
-import androidx.work.WorkManager
-import java.text.DateFormat
-import java.util.Date
-import java.util.concurrent.TimeUnit
+import java.util.Calendar
 
-private val         TAG: String = MainActivity::class.java.getName()
-private const val   WORK_ID = "11bc9742-6835-440e-bdd6-552c0d2f1df4"
+private val TAG: String = MainActivity::class.java.getName()
 
 class MainActivity : ComponentActivity() {
 
     private fun showToast(str: String, length: Int = LENGTH_SHORT) {
-        val toast = Toast.makeText(this,
-            str,
-            length
-        )
+        val toast = Toast.makeText(this, str, length)
         toast.show()
     }
 
-    private fun enqueuePeriodicWork() {
-        Log.d(TAG, "Enqueuing periodic work request")
-        val periodicWorkRequest = PeriodicWorkRequest.Builder(
-            Notification::class.java,
-            24, TimeUnit.HOURS
-        ).build()
-        Log.d(TAG, "PeriodicWorkRequest created")
+    private fun setAlarm() {
+        try {
+            val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+            val alarmIntent = Intent(this, NotificationService::class.java).let { intent ->
+                PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+            }
+            Log.d(TAG, "Setting alarm")
 
-        val workManager = WorkManager.getInstance(this)
-        workManager.enqueueUniquePeriodicWork(
-            WORK_ID,
-            ExistingPeriodicWorkPolicy.KEEP,
-            periodicWorkRequest
-        )
-        Log.d(TAG, "PeriodicWorkRequest enqueued")
-        showToast(
-            "${getString(R.string.app_name)} configurado para notificar a las " +
-                    "${DateFormat.getTimeInstance().format(Date())}"
-        )
-        showToast(
-            "Abre la aplicación de nuevo para eliminar la notificación"
-        , LENGTH_LONG)
+            val calendar: Calendar = Calendar.getInstance().apply {
+                timeInMillis = System.currentTimeMillis()
+                set(Calendar.HOUR_OF_DAY, 10)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+            }
+            Log.d(TAG, "Alarm set for ${calendar.time}")
+
+            alarmManager.setRepeating(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                AlarmManager.INTERVAL_DAY,
+                alarmIntent
+            )
+            Log.d(TAG, "Alarm set")
+            showToast(
+                "${getString(R.string.app_name)} configurado correctamente"
+            )
+            showToast(
+                "Abre la aplicación de nuevo para eliminar la notificación"
+            , LENGTH_LONG)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting alarm: ${e.message}")
+        }
         finish()
     }
 
     private fun installOrUninstall() {
-        val workManager     = WorkManager.getInstance(this)
-        val workInfoList    = workManager.getWorkInfosForUniqueWork(WORK_ID).get()
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+        val alarmUp = (PendingIntent.getBroadcast(this, 0,
+            Intent(this, NotificationService::class.java),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE) != null)
 
-        Log.d(TAG, "Checking if work request exists")
-        if (workInfoList.isEmpty() || workInfoList[0].state == androidx.work.WorkInfo.State.CANCELLED)
-            enqueuePeriodicWork()
+        Log.d(TAG, "Checking if alarm exists")
+        if (!alarmUp) {
+            Log.d(TAG, "Alarm does not exist")
+            setAlarm()
+        }
         else {
-            workManager.cancelUniqueWork(WORK_ID)
-            Log.d(TAG,
-                "PeriodicWorkRequest cancelled"
-            )
+            Log.d(TAG, "Alarm exists")
+            val alarmIntent = Intent(this, NotificationService::class.java).let { intent ->
+                PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+            }
+            alarmManager.cancel(alarmIntent)
+            alarmIntent.cancel()
+            Log.d(TAG, "Alarm cancelled")
             showToast(
                 "${getString(R.string.app_name)} desinstalado correctamente"
             )
@@ -91,7 +102,7 @@ class MainActivity : ComponentActivity() {
         ) { isGranted: Boolean ->
             if (isGranted) {
                 Log.d(TAG, "Notification permission granted")
-                enqueuePeriodicWork()
+                setAlarm()
             } else {
                 Log.d(TAG, "Notification permission not granted")
                 showToast(

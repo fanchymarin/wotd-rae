@@ -52,8 +52,15 @@ class HttpClient: OkHttpClient() {
 
     private fun parseWordOfTheDayDefinition(context: Context) {
         val url = "https://dle.rae.es/${wordOfTheDayName.header}"
-        val responseBodyString = getResponse(url, context)
+        var responseBodyString = getResponse(url, context)
         val htmlParser = HtmlParser()
+
+        if (responseBodyString == "") {
+            Log.e(TAG, "Error retrieving word of the day name")
+            wordOfTheDayDefinition = "Definición no encontrada"
+            return
+        }
+
         try {
             wordOfTheDayDefinition = htmlParser.parseDefinition(responseBodyString)
             Log.d(TAG, "Word of the day definition:\n$wordOfTheDayDefinition")
@@ -66,6 +73,13 @@ class HttpClient: OkHttpClient() {
     private fun parseWordOfTheDayName(context: Context) {
         val url = "https://dle.rae.es/data/wotd?callback=json"
         var responseBodyString = getResponse(url, context)
+
+        if (responseBodyString == "") {
+            Log.e(TAG, "Error retrieving word of the day name")
+            wordOfTheDayName = WordOfTheDayName("Palabra no encontrada", "")
+            return
+        }
+
         responseBodyString = responseBodyString.substring(5, responseBodyString.length - 1)
         wordOfTheDayName = Json.decodeFromString<WordOfTheDayName>(
             responseBodyString.toString()
