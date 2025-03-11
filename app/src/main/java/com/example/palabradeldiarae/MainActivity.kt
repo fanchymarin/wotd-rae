@@ -40,7 +40,9 @@ class MainActivity : ComponentActivity() {
         try {
             val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
             val alarmIntent = Intent(this, NotificationService::class.java).let { intent ->
-                PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+                PendingIntent.getBroadcast(this, 0, intent,
+                    PendingIntent.FLAG_IMMUTABLE or
+                    PendingIntent.FLAG_UPDATE_CURRENT)
             }
             Log.d(TAG, "Setting alarm")
 
@@ -50,7 +52,6 @@ class MainActivity : ComponentActivity() {
                 set(Calendar.MINUTE, 0)
                 set(Calendar.SECOND, 0)
             }
-            Log.d(TAG, "Alarm set for ${calendar.time}")
 
             alarmManager.setRepeating(
                 AlarmManager.RTC_WAKEUP,
@@ -58,7 +59,7 @@ class MainActivity : ComponentActivity() {
                 AlarmManager.INTERVAL_DAY,
                 alarmIntent
             )
-            Log.d(TAG, "Alarm set")
+            Log.d(TAG, "Alarm set for ${calendar.time}")
             showToast(
                 "${getString(R.string.app_name)} configurado correctamente"
             )
@@ -68,14 +69,14 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error setting alarm: ${e.message}")
         }
-        finish()
     }
 
     private fun installOrUninstall() {
         val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
         val alarmUp = (PendingIntent.getBroadcast(this, 0,
             Intent(this, NotificationService::class.java),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE) != null)
+            PendingIntent.FLAG_IMMUTABLE or
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_NO_CREATE) != null)
 
         Log.d(TAG, "Checking if alarm exists")
         if (!alarmUp) {
@@ -85,7 +86,8 @@ class MainActivity : ComponentActivity() {
         else {
             Log.d(TAG, "Alarm exists")
             val alarmIntent = Intent(this, NotificationService::class.java).let { intent ->
-                PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+                PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or
+                        PendingIntent.FLAG_UPDATE_CURRENT)
             }
             alarmManager.cancel(alarmIntent)
             alarmIntent.cancel()
@@ -93,8 +95,8 @@ class MainActivity : ComponentActivity() {
             showToast(
                 "${getString(R.string.app_name)} desinstalado correctamente"
             )
-            finish()
         }
+        finish()
     }
 
     private val activityResultLauncher =
