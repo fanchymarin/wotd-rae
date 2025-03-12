@@ -10,7 +10,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.random.Random
 
@@ -32,9 +34,12 @@ class NotificationService() : BroadcastReceiver() {
         createNotificationChannel()
         CoroutineScope(Dispatchers.IO).launch {
             val httpClient = HttpClient()
-            httpClient.retrieveWordOfTheDay(applicationContext)
 
-            CoroutineScope(Dispatchers.Main).launch {
+            val wordResult = async { httpClient.retrieveWordOfTheDay(applicationContext) }
+
+            wordResult.await()
+
+            withContext(Dispatchers.Main) {
                 showNotification(httpClient)
             }
         }
