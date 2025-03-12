@@ -6,15 +6,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.example.palabradeldiarae.ui.theme.PalabraDelDiaRAETheme
 import android.Manifest
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.ComponentName
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
-import android.widget.Toast.LENGTH_SHORT
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
@@ -32,7 +28,7 @@ private val TAG: String = MainActivity::class.java.getName()
 
 class MainActivity : ComponentActivity() {
 
-    private fun showToast(str: String, length: Int = LENGTH_SHORT) {
+    private fun showToast(str: String, length: Int = LENGTH_LONG) {
         val toast = Toast.makeText(this, str, length)
         toast.show()
     }
@@ -49,50 +45,6 @@ class MainActivity : ComponentActivity() {
         showToast(
             "${getString(R.string.app_name)} configurado correctamente"
         )
-        showToast(
-            "Abre la aplicación de nuevo para eliminar la notificación"
-            , LENGTH_LONG)
-    }
-
-    private fun unsetAlarmAndBoot() {
-        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-        val alarmIntent = Intent(this, NotificationService::class.java).let { intent ->
-            PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or
-                    PendingIntent.FLAG_UPDATE_CURRENT)
-        }
-        val receiver = ComponentName(this, BootReceiver::class.java)
-
-        alarmManager.cancel(alarmIntent)
-        alarmIntent.cancel()
-        Log.d(TAG, "Alarm cancelled")
-        packageManager.setComponentEnabledSetting(
-            receiver,
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP
-        )
-        Log.d(TAG, "Boot receiver disabled")
-
-        showToast(
-            "${getString(R.string.app_name)} desinstalado correctamente"
-        )
-    }
-
-    private fun setOrUnset() {
-        val alarmUp = (PendingIntent.getBroadcast(this, 0,
-            Intent(this, NotificationService::class.java),
-            PendingIntent.FLAG_IMMUTABLE or
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_NO_CREATE) != null)
-
-        Log.d(TAG, "Checking if alarm exists")
-        if (!alarmUp) {
-            Log.d(TAG, "Alarm does not exist")
-            setAlarmAndBoot()
-        }
-        else {
-            Log.d(TAG, "Alarm exists")
-            unsetAlarmAndBoot()
-        }
-        finish()
     }
 
     private val activityResultLauncher =
@@ -147,7 +99,8 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED -> {
                 Log.d(TAG, "Notification permission was previously granted")
-                setOrUnset()
+                setAlarmAndBoot()
+                finish()
             }
 
             ActivityCompat.shouldShowRequestPermissionRationale(this,
