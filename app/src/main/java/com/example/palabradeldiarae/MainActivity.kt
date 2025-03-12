@@ -8,6 +8,7 @@ import com.example.palabradeldiarae.ui.theme.PalabraDelDiaRAETheme
 import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
@@ -25,7 +26,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import java.util.Calendar
+import com.example.palabradeldiarae.SetAlarm.Companion.setAlarm
 
 private val TAG: String = MainActivity::class.java.getName()
 
@@ -36,40 +37,23 @@ class MainActivity : ComponentActivity() {
         toast.show()
     }
 
-    private fun setAlarm() {
-        try {
-            val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-            val alarmIntent = Intent(this, NotificationService::class.java).let { intent ->
-                PendingIntent.getBroadcast(this, 0, intent,
-                    PendingIntent.FLAG_IMMUTABLE or
-                    PendingIntent.FLAG_UPDATE_CURRENT)
-            }
-            Log.d(TAG, "Setting alarm")
-
-            val calendar: Calendar = Calendar.getInstance().apply {
-                timeInMillis = System.currentTimeMillis()
-                set(Calendar.HOUR_OF_DAY, 10)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-            }
-
-            alarmManager.setRepeating(
-                AlarmManager.RTC_WAKEUP,
-                calendar.timeInMillis,
-                AlarmManager.INTERVAL_DAY,
-                alarmIntent
-            )
-            Log.d(TAG, "Alarm set for ${calendar.time}")
-            showToast(
-                "${getString(R.string.app_name)} configurado correctamente"
-            )
-            showToast(
-                "Abre la aplicación de nuevo para eliminar la notificación"
+    private fun setAlarmAndBoot() {
+        setAlarm(this)
+        val receiver = ComponentName(this, BootReceiver::class.java)
+        Log.d(TAG, "Enabling boot receiver")
+        packageManager.setComponentEnabledSetting(
+            receiver,
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP
+        )
+        showToast(
+            "${getString(R.string.app_name)} configurado correctamente"
+        )
+        showToast(
+            "Abre la aplicación de nuevo para eliminar la notificación"
             , LENGTH_LONG)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error setting alarm: ${e.message}")
-        }
     }
+
 
     private fun installOrUninstall() {
         val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
@@ -81,7 +65,7 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "Checking if alarm exists")
         if (!alarmUp) {
             Log.d(TAG, "Alarm does not exist")
-            setAlarm()
+            setAlarmAndBoot()
         }
         else {
             Log.d(TAG, "Alarm exists")
@@ -104,7 +88,7 @@ class MainActivity : ComponentActivity() {
         ) { isGranted: Boolean ->
             if (isGranted) {
                 Log.d(TAG, "Notification permission granted")
-                setAlarm()
+                setAlarmAndBoot()
             } else {
                 Log.d(TAG, "Notification permission not granted")
                 showToast(
