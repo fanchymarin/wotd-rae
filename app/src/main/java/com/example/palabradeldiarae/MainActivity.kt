@@ -54,9 +54,30 @@ class MainActivity : ComponentActivity() {
             , LENGTH_LONG)
     }
 
-
-    private fun installOrUninstall() {
+    private fun unsetAlarmAndBoot() {
         val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+        val alarmIntent = Intent(this, NotificationService::class.java).let { intent ->
+            PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or
+                    PendingIntent.FLAG_UPDATE_CURRENT)
+        }
+        val receiver = ComponentName(this, BootReceiver::class.java)
+
+        alarmManager.cancel(alarmIntent)
+        alarmIntent.cancel()
+        Log.d(TAG, "Alarm cancelled")
+        packageManager.setComponentEnabledSetting(
+            receiver,
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            PackageManager.DONT_KILL_APP
+        )
+        Log.d(TAG, "Boot receiver disabled")
+
+        showToast(
+            "${getString(R.string.app_name)} desinstalado correctamente"
+        )
+    }
+
+    private fun setOrUnset() {
         val alarmUp = (PendingIntent.getBroadcast(this, 0,
             Intent(this, NotificationService::class.java),
             PendingIntent.FLAG_IMMUTABLE or
@@ -69,16 +90,7 @@ class MainActivity : ComponentActivity() {
         }
         else {
             Log.d(TAG, "Alarm exists")
-            val alarmIntent = Intent(this, NotificationService::class.java).let { intent ->
-                PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or
-                        PendingIntent.FLAG_UPDATE_CURRENT)
-            }
-            alarmManager.cancel(alarmIntent)
-            alarmIntent.cancel()
-            Log.d(TAG, "Alarm cancelled")
-            showToast(
-                "${getString(R.string.app_name)} desinstalado correctamente"
-            )
+            unsetAlarmAndBoot()
         }
         finish()
     }
@@ -105,6 +117,27 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private fun showRationale() {
+        Log.d(TAG, "Showing permission rationale")
+        enableEdgeToEdge()
+        setContent {
+            PalabraDelDiaRAETheme {
+                PermissionRationale(
+                    onDismissRequest = { finish() },
+                    onConfirmation = {
+                        requestPermission()
+                    },
+                    dialogTitle =
+                        "Permiso de notificación",
+                    dialogText =
+                        "${getString(R.string.app_name)} " +
+                                "necesita el permiso de notificación para funcionar correctamente.",
+                    icon = Icons.Default.Info
+                )
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -114,31 +147,14 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED -> {
                 Log.d(TAG, "Notification permission was previously granted")
-                installOrUninstall()
+                setOrUnset()
             }
 
             ActivityCompat.shouldShowRequestPermissionRationale(this,
                 Manifest.permission.POST_NOTIFICATIONS
             ) -> {
                 Log.d(TAG, "Notification permission was previously denied")
-                Log.d(TAG, "Showing permission rationale")
-                enableEdgeToEdge()
-                setContent {
-                    PalabraDelDiaRAETheme {
-                        PermissionRationale(
-                            onDismissRequest = { finish() },
-                            onConfirmation = {
-                                requestPermission()
-                            },
-                            dialogTitle =
-                                "Permiso de notificación",
-                            dialogText =
-                                "${getString(R.string.app_name)} " +
-                                "necesita el permiso de notificación para funcionar correctamente.",
-                            icon = Icons.Default.Info
-                        )
-                    }
-                }
+                showRationale()
             }
 
             else -> requestPermission()
