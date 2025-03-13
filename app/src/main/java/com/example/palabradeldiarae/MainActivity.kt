@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun setAlarmAndBoot() {
-        setAlarm(this)
+        setAlarm(this, 0)
         val receiver = ComponentName(this, BootReceiver::class.java)
         Log.d(TAG, "Enabling boot receiver")
         packageManager.setComponentEnabledSetting(

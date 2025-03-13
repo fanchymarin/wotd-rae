@@ -8,6 +8,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getString
+import com.example.palabradeldiarae.SetAlarm.Companion.setAlarm
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -41,6 +42,7 @@ class NotificationService() : BroadcastReceiver() {
 
             withContext(Dispatchers.Main) {
                 showNotification(httpClient)
+                setAlarm(context)
             }
         }
     }

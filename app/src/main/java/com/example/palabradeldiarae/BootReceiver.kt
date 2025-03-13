@@ -14,6 +14,6 @@ class BootReceiver : BroadcastReceiver() {
         if (intent.action != "android.intent.action.BOOT_COMPLETED")
             return
         Log.d(TAG, "Setting alarm on boot")
-        setAlarm(context)
+        setAlarm(context, 0)
     }
 }

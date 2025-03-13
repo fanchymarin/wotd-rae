@@ -13,7 +13,7 @@ private val TAG: String = SetAlarm::class.java.getName()
 class SetAlarm {
 
     companion object {
-        fun setAlarm(context: Context) {
+        fun setAlarm(context: Context, dateAdded: Int = 1) {
             try {
                 val alarmManager = context.getSystemService(ALARM_SERVICE) as AlarmManager
                 val alarmIntent = Intent(context, NotificationService::class.java).let { intent ->
@@ -28,15 +28,15 @@ class SetAlarm {
 
                 val calendar: Calendar = Calendar.getInstance().apply {
                     timeInMillis = System.currentTimeMillis()
+                    set(Calendar.DATE, get(Calendar.DATE) + dateAdded)
                     set(Calendar.HOUR_OF_DAY, 10)
                     set(Calendar.MINUTE, 0)
                     set(Calendar.SECOND, 0)
                 }
 
-                alarmManager.setRepeating(
+                alarmManager.setAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
                     calendar.timeInMillis,
-                    AlarmManager.INTERVAL_DAY,
                     alarmIntent
                 )
                 Log.d(TAG, "Alarm set for ${calendar.time}")
