@@ -64,9 +64,13 @@ class MainActivity : ComponentActivity() {
 
     private fun requestPermission() {
         Log.d(TAG, "Requesting notification permission")
-        activityResultLauncher.launch(
-            Manifest.permission.POST_NOTIFICATIONS
-        )
+        try {
+            activityResultLauncher.launch(
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error requesting notification permission: ${e.message}")
+        }
     }
 
     private fun showRationale() {
