@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 Log.d(TAG, "Notification permission not granted")
                 showToast(
-                    "La aplicación necesita permisos para funcionar correctamente"
+                    "${getString(R.string.app_name)} no ha sido configurado"
                 )
             }
             finish()
@@ -79,11 +79,9 @@ class MainActivity : ComponentActivity() {
                     onConfirmation = {
                         requestPermission()
                     },
-                    dialogTitle =
-                        "Permiso de notificación",
-                    dialogText =
-                        "${getString(R.string.app_name)} " +
-                                "necesita el permiso de notificación para funcionar correctamente.",
+                    dialogTitle =   "Permiso de notificación",
+                    dialogText =    "${getString(R.string.app_name)} necesita el permiso " +
+                                    "de notificación para funcionar correctamente",
                     icon = Icons.Default.Info
                 )
             }
@@ -125,7 +123,7 @@ fun PermissionRationale(
 ) {
     AlertDialog(
         icon = {
-            Icon(icon, contentDescription = "Example Icon")
+            Icon(icon, contentDescription = "Info icon")
         },
         title = {
             Text(text = dialogTitle)
@@ -142,7 +140,7 @@ fun PermissionRationale(
                     onConfirmation()
                 }
             ) {
-                Text("Confirm")
+                Text("Continuar")
             }
         },
         dismissButton = {
@@ -151,7 +149,7 @@ fun PermissionRationale(
                     onDismissRequest()
                 }
             ) {
-                Text("Dismiss")
+                Text("Salir")
             }
         }
     )
