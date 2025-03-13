@@ -75,7 +75,6 @@ class NotificationService() : BroadcastReceiver() {
 
             notificationManager.notify(notificationId, notification)
             Log.d(TAG, "Notification with id $notificationId sent to notification manager")
-            notificationId++
         } catch (e: Exception) {
             Log.e(TAG, "Error showing notification: ${e.message}")
         }
