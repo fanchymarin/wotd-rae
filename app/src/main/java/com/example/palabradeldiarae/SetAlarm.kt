@@ -9,6 +9,7 @@ import android.util.Log
 import java.util.Calendar
 
 private val TAG: String = SetAlarm::class.java.getName()
+private val INTENT_REQUEST_CODE = 0
 
 class SetAlarm {
 
@@ -18,7 +19,7 @@ class SetAlarm {
                 val alarmManager = context.getSystemService(ALARM_SERVICE) as AlarmManager
                 val alarmIntent = Intent(context, NotificationService::class.java).let { intent ->
                     PendingIntent.getBroadcast(
-                        context, 0, intent,
+                        context, INTENT_REQUEST_CODE, intent,
                         PendingIntent.FLAG_IMMUTABLE or
                                 PendingIntent.FLAG_UPDATE_CURRENT
                     )
