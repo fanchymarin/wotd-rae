@@ -21,7 +21,7 @@ class HtmlParser {
                 .trim()
         } else {
             Log.w(TAG, "No description element found in HTML")
-            "Definición no encontrada"
+            "Abre la notificación para leer la definición completa"
         }
     }
 }

@@ -14,18 +14,31 @@ private val TAG: String = HttpClient::class.java.getName()
 class HttpClient: OkHttpClient() {
 
     @Serializable
-    data class WordOfTheDayName(
+    data class WordOfTheDayNameRequest(
         val header: String,
         val id: String
     )
 
-    lateinit var wordOfTheDayName: WordOfTheDayName
+    lateinit var baseUrl: String
+    lateinit var wordOfTheDayName: String
+    lateinit var wordOfTheDayNameHttp: String
     lateinit var wordOfTheDayDefinition: String
+    var          homonyms: Boolean = false
 
     fun retrieveWordOfTheDay(context: Context) {
         Log.d(TAG, "Retrieving word of the day")
-        parseWordOfTheDayName(context)
-        parseWordOfTheDayDefinition(context)
+        baseUrl = getString(context, R.string.http_url)
+        wordOfTheDayName = parseWordOfTheDayName(context)
+        wordOfTheDayNameHttp = wordOfTheDayName.substringBefore(',')
+        wordOfTheDayDefinition = parseWordOfTheDayDefinition(context)
+        homonyms = wordHasHomonyms()
+    }
+
+    private fun wordHasHomonyms(): Boolean {
+        val meanings = Regex("[0-9]+.").findAll(wordOfTheDayDefinition)
+        val count = meanings.map { it.value }.toList()
+
+        return count.size != count.distinct().size
     }
 
     private fun getResponse(url: String, context: Context): String {
@@ -50,43 +63,45 @@ class HttpClient: OkHttpClient() {
         } as String
     }
 
-    private fun parseWordOfTheDayDefinition(context: Context) {
-        val url = "https://dle.rae.es/${wordOfTheDayName.header}"
+    private fun parseWordOfTheDayDefinition(context: Context): String {
+        val url = "${baseUrl}/${wordOfTheDayNameHttp}"
         var responseBodyString = getResponse(url, context)
         val htmlParser = HtmlParser()
 
         if (responseBodyString == "") {
-            Log.e(TAG, "Error retrieving word of the day name")
-            wordOfTheDayDefinition = "Definición no encontrada"
-            return
+            Log.e(TAG, "Error retrieving word of the day definition")
+            return "Abre la notificación para leer la definición completa"
         }
 
         try {
             wordOfTheDayDefinition = htmlParser.parseDefinition(responseBodyString)
             Log.d(TAG, "Word of the day definition:\n$wordOfTheDayDefinition")
-
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing word of the day definition: ${e.message}")
         }
+        return wordOfTheDayDefinition
     }
 
-    private fun parseWordOfTheDayName(context: Context) {
-        val url = "https://dle.rae.es/data/wotd?callback=json"
+    private fun parseWordOfTheDayName(context: Context): String {
+        val url = "${baseUrl}/data/wotd?callback=json"
         var responseBodyString = getResponse(url, context)
+        var wordOfTheDayNameRequest = WordOfTheDayNameRequest("", "")
 
         if (responseBodyString == "") {
             Log.e(TAG, "Error retrieving word of the day name")
-            wordOfTheDayName = WordOfTheDayName("Palabra no encontrada", "")
-            return
+            return "Palabra no encontrada"
         }
-
+        // Remove callback function name and parentheses
         responseBodyString = responseBodyString.substring(5, responseBodyString.length - 1)
-        wordOfTheDayName = Json.decodeFromString<WordOfTheDayName>(
+
+        wordOfTheDayNameRequest = Json.decodeFromString<WordOfTheDayNameRequest>(
             responseBodyString.toString()
         )
         Log.d(
             TAG,
-            "Word of the day name: ${wordOfTheDayName.header}"
+            "Word of the day name: ${wordOfTheDayNameRequest.header.replace(Regex("<sup>.*?</sup>"), "")}"
         )
+        // Remove superscript tags
+        return wordOfTheDayNameRequest.header.replace(Regex("<sup>.*?</sup>"), "")
     }
 }

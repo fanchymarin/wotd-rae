@@ -2,6 +2,7 @@ package com.example.palabradeldiarae
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -16,19 +17,23 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.random.Random
+import androidx.core.net.toUri
 
 const val CHANNEL_ID = "9dfb4080-2c15-4121-a78c-092608d441a0"
+private const val INTENT_REQUEST_CODE = 1
 private val TAG: String = NotificationService::class.java.getName()
 
 class NotificationService() : BroadcastReceiver() {
 
-    private var notificationId = Random.nextInt()
-    private lateinit var applicationContext: Context
-    private lateinit var notificationManager: NotificationManager
+    private var notificationId                  = Random.nextInt()
+    private lateinit var httpUrl                : String
+    private lateinit var applicationContext     : Context
+    private lateinit var notificationManager    : NotificationManager
 
     override fun onReceive(context: Context, intent: Intent?) {
         Log.d(TAG, "Task executed")
-        applicationContext = context
+        applicationContext  = context
+        httpUrl             = getString(applicationContext, R.string.http_url)
         notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE)
                 as NotificationManager
 
@@ -58,18 +63,40 @@ class NotificationService() : BroadcastReceiver() {
     }
 
     private fun showNotification(httpClient: HttpClient) {
-        val wordOfTheDayName = httpClient.wordOfTheDayName.header.replaceFirstChar{
-            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-        val wordOfTheDayDefinition = httpClient.wordOfTheDayDefinition
+        val wordOfTheDayName        = httpClient.wordOfTheDayName.replaceFirstChar{
+                                        if (it.isLowerCase())
+                                            it.titlecase(Locale.getDefault())
+                                        else it.toString()
+                                    }
+        val wordOfTheDayDefinition  = if (httpClient.homonyms) {
+                                        httpClient.wordOfTheDayDefinition
+                                            .substringBeforeLast("1.")
+                                    } else {
+                                        httpClient.wordOfTheDayDefinition
+                                    }
+
+        val resultIntent            = Intent(Intent.ACTION_VIEW,
+                                        "${httpUrl}/${httpClient.wordOfTheDayNameHttp}".toUri()
+                                    )
+        val resultPendingIntent     = PendingIntent.getActivity(applicationContext,
+                                        INTENT_REQUEST_CODE,
+                                        resultIntent,
+                                        PendingIntent.FLAG_UPDATE_CURRENT
+                                            or PendingIntent.FLAG_IMMUTABLE
+                                    )
 
         try {
             val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
                 .setContentTitle("Palabra del día: $wordOfTheDayName")
                 .setContentText(wordOfTheDayDefinition)
                 .setStyle(NotificationCompat.BigTextStyle()
-                    .bigText(wordOfTheDayDefinition))
+                    .bigText(wordOfTheDayDefinition
+                        .plus("\nLa palabra es homónima. " +
+                                "Abre la notificación para leer todos sus significados.")))
                 .setSmallIcon(R.drawable.dictionary)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(resultPendingIntent)
+                .setAutoCancel(true)
                 .build()
             Log.d(TAG, "Notification created")
 

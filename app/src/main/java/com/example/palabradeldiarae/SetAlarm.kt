@@ -9,7 +9,7 @@ import android.util.Log
 import java.util.Calendar
 
 private val TAG: String = SetAlarm::class.java.getName()
-private val INTENT_REQUEST_CODE = 0
+private const val INTENT_REQUEST_CODE = 0
 
 class SetAlarm {
 
