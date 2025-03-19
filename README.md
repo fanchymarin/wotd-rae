@@ -53,6 +53,9 @@ This project demonstrates several Android development concepts:
 
 ## Getting Started
 
+> [!WARNING]
+> This application is still in development and no official release has been published yet.
+
 To use this application:
 
 1. Install the app
