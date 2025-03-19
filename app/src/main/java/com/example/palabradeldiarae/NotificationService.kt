@@ -91,8 +91,14 @@ class NotificationService() : BroadcastReceiver() {
                 .setContentText(wordOfTheDayDefinition)
                 .setStyle(NotificationCompat.BigTextStyle()
                     .bigText(wordOfTheDayDefinition
-                        .plus("\nLa palabra es homónima. " +
-                                "Abre la notificación para leer todos sus significados.")))
+                                .plus(  if (httpClient.homonyms)
+                                            "\n" +
+                                            "La palabra es homónima. " +
+                                            "Abre la notificación para leer todos sus significados."
+                                        else ""
+                                )
+                            )
+                    )
                 .setSmallIcon(R.drawable.dictionary)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(resultPendingIntent)

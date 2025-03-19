@@ -31,14 +31,6 @@ class HttpClient: OkHttpClient() {
         wordOfTheDayName = parseWordOfTheDayName(context)
         wordOfTheDayNameHttp = wordOfTheDayName.substringBefore(',')
         wordOfTheDayDefinition = parseWordOfTheDayDefinition(context)
-        homonyms = wordHasHomonyms()
-    }
-
-    private fun wordHasHomonyms(): Boolean {
-        val meanings = Regex("[0-9]+.").findAll(wordOfTheDayDefinition)
-        val count = meanings.map { it.value }.toList()
-
-        return count.size != count.distinct().size
     }
 
     private fun getResponse(url: String, context: Context): String {
@@ -86,6 +78,7 @@ class HttpClient: OkHttpClient() {
         val url = "${baseUrl}/data/wotd?callback=json"
         var responseBodyString = getResponse(url, context)
         var wordOfTheDayNameRequest = WordOfTheDayNameRequest("", "")
+        var wordOfTheDayName = ""
 
         if (responseBodyString == "") {
             Log.e(TAG, "Error retrieving word of the day name")
@@ -102,6 +95,12 @@ class HttpClient: OkHttpClient() {
             "Word of the day name: ${wordOfTheDayNameRequest.header.replace(Regex("<sup>.*?</sup>"), "")}"
         )
         // Remove superscript tags
-        return wordOfTheDayNameRequest.header.replace(Regex("<sup>.*?</sup>"), "")
+        wordOfTheDayName = wordOfTheDayNameRequest.header.replace(Regex("<sup>.*?</sup>"), "")
+        if (wordOfTheDayName != wordOfTheDayNameRequest.header)
+        {
+            Log.d(TAG, "Word of the day has homonyms")
+            homonyms = true
+        }
+        return wordOfTheDayName
     }
 }
