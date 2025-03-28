@@ -30,7 +30,7 @@ class SetAlarm {
                 val calendar: Calendar = Calendar.getInstance().apply {
                     timeInMillis = System.currentTimeMillis()
                     set(Calendar.DATE, get(Calendar.DATE) + dateAdded)
-                    set(Calendar.HOUR_OF_DAY, 10)
+                    set(Calendar.HOUR_OF_DAY, 12)
                     set(Calendar.MINUTE, 0)
                     set(Calendar.SECOND, 0)
                 }
