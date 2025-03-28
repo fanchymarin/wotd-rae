@@ -2,6 +2,8 @@
 
 A simple Android application that delivers daily notifications containing the Word of the Day from the Royal Spanish Academy (Real Academia Española - RAE) dictionary website.
 
+![imagen](https://github.com/user-attachments/assets/e1165075-5846-4c05-8cd9-cf7ac93ff205)
+
 ## Features
 
 - 📱 Daily notifications at 10:00 AM featuring the "Word of the Day" from RAE.
