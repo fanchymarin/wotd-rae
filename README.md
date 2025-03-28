@@ -6,7 +6,7 @@ A simple Android application that delivers daily notifications containing the Wo
 
 ## Features
 
-- 📱 Daily notifications at 10:00 AM featuring the "Word of the Day" from RAE.
+- 📱 Daily notifications at 12:00 AM featuring the "Word of the Day" from RAE.
 - 🌐 Direct access to the complete definition on the RAE website
 - 🔄 Automatic scheduling that persists after device reboots
 - 🔍 Special handling for homonymous words
