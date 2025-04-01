@@ -11,6 +11,9 @@ A simple Android application that delivers daily notifications containing the Wo
 - 🔄 Automatic scheduling that persists after device reboots
 - 🔍 Special handling for homonymous words
 
+> [!NOTE]
+> Notification timing might vary based on your device's battery optimization settings.
+
 ## Technical Details
 
 ### Components
