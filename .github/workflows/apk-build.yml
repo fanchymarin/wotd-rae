@@ -1,0 +1,62 @@
+name: Build and release APK
+
+env:
+  main_project_module: app
+
+on:
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release_apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
+
+      - name: Run Gradle tests
+        run: ./gradlew test
+
+      - name: Build Gradle project
+        run: ./gradlew build
+
+      - name: Build APK
+        run: ./gradlew clean assembleDebug
+
+      - name: Get project version
+        run: |
+          echo "project_version=$(./gradlew -q :app:printProjectVersion)" >> $GITHUB_ENV
+        id: project_version
+      
+      - name: Get repository name
+        run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+        id: repository_name
+
+      - name: Change APK name
+        run: |
+          APK_PATH=${GITHUB_WORKSPACE}/${{ env.main_project_module }}/build/outputs/apk/debug
+          mv ${APK_PATH}/${{ env.main_project_module }}-debug.apk ${APK_PATH}/${{ env.repository_name }}-${{ env.project_version }}.apk
+
+      - name: Release APK
+        id: release_apk
+        uses: im-open/create-release@v3
+        with:
+          commitish: ${{ github.sha }}
+          github-token: ${{ github.token }}
+          tag-name: ${{ env.project_version }}
+          release-name: "${{ env.repository_name }} [${{ env.project_version }}]"
+          asset-path: ${{ env.main_project_module }}/build/outputs/apk/debug/${{ env.repository_name }}-${{ env.project_version }}.apk
+          asset-name: ${{ env.repository_name }}-${{ env.project_version }}.apk
+          asset-content-type: application/vnd.android.package-archive
